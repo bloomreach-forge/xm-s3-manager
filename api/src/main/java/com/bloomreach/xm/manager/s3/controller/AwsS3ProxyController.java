@@ -18,6 +18,7 @@ package com.bloomreach.xm.manager.s3.controller;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.RepositoryException;
@@ -147,8 +148,33 @@ public class AwsS3ProxyController implements ProxyController<S3ListItem> {
     @Path("/list")
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public List<S3ListItem> list(@DefaultValue (value = "") @QueryParam(value = "path") String path, @QueryParam(value = "query") String query) {
-        return this.awsS3Service.getList(path, query);
+    public List<S3ListItem> list(@Context HttpServletRequest httpServletRequest, @DefaultValue (value = "") @QueryParam(value = "path") String path, @QueryParam(value = "query") String query) {
+        final Session userSession = getUserSession(httpServletRequest);
+        final Set<String> viewerRoles = new java.util.HashSet<>();
+        final Set<String> excludeRoles = new java.util.HashSet<>();
+        if (userSession != null) {
+            try {
+                final Set<String> userRoles = ((HippoSession) userSession).getUser().getUserRoles();
+                if (userRoles != null) {
+                    for (String role : userRoles) {
+                        if (role == null) {
+                            continue;
+                        }
+                        if (role.startsWith("xm.s3manager-viewer.")) {
+                            viewerRoles.add(role);
+                        } else if (role.startsWith("xm.s3manager-exclude.")) {
+                            excludeRoles.add(role);
+                        }
+                    }
+                }
+            } catch (ItemNotFoundException e) {
+                log.error("Error while trying to access user roles.", e);
+            }
+        } else {
+            log.debug("No user session available, skipping role inspection.");
+        }
+
+        return this.awsS3Service.getList(path, query, viewerRoles, excludeRoles);
     }
 
     @Path("/acl")
