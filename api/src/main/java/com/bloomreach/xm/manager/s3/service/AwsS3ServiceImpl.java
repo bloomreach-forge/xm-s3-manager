@@ -115,7 +115,7 @@ public class AwsS3ServiceImpl implements AwsS3Service {
       return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region.id(), key);
     }
 
-    public List<S3ListItem> getList(final String prefix, final String query, final Set<String> viewerRoles, final Set<String> excludeRoles) {
+    public List<S3ListItem> getList(final String prefix, final String query, final Set<String> viewRoles, final Set<String> excludeRoles) {
         final ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
               .bucket(bucket)
               .prefix(prefix)
@@ -125,10 +125,10 @@ public class AwsS3ServiceImpl implements AwsS3Service {
         final ListObjectsV2Response objectListing = amazonS3.listObjectsV2(listObjectsRequest);
 
         // derive hierarchical path prefixes from roles: convert dots to '/' and normalize
-        final Set<String> viewerPrefixes = viewerRoles == null ? java.util.Collections.emptySet() : viewerRoles.stream()
+        final Set<String> viewPrefixes = viewRoles == null ? java.util.Collections.emptySet() : viewRoles.stream()
             .filter(java.util.Objects::nonNull)
             // remove everything up to and including the 'viewer.' token so we get e.g. 'foo.bar'
-            .map(r -> r.replaceFirst("(?i)^.*?viewer\\.", ""))
+            .map(r -> r.replaceFirst("(?i)^.*?view\\.", ""))
             .filter(s -> !s.isEmpty())
             .map(String::toLowerCase)
             .map(s -> s.replace('.', '/'))
@@ -156,11 +156,11 @@ public class AwsS3ServiceImpl implements AwsS3Service {
                      return false;
                  }
 
-                 // Viewer logic: if no viewer prefixes defined -> allow; otherwise allow only if any viewer prefix matches
-                 if (viewerPrefixes.isEmpty()) {
+                 // View logic: if no view prefixes defined -> allow; otherwise allow only if any view prefix matches
+                 if (viewPrefixes.isEmpty()) {
                      return true;
                  }
-                return viewerPrefixes.stream().anyMatch(pref -> keyLower.equals(pref.substring(0, pref.length()-1)) || keyLower.startsWith(pref));
+                return viewPrefixes.stream().anyMatch(pref -> keyLower.equals(pref.substring(0, pref.length()-1)) || keyLower.startsWith(pref));
              })
              .map(s3Object -> new S3ListItem(s3Object, getUrl(s3Object.key())))
              .toList();
@@ -172,42 +172,42 @@ public class AwsS3ServiceImpl implements AwsS3Service {
                 final String folderKeyLower = folderKey.toLowerCase();
                 final String folderWithSlash = folderKeyLower + "/";
 
-                // Exclude precedence for folders: exclude only when the folder itself is inside an exclude prefix or equals an exclude prefix
-                boolean excluded = excludePrefixes.stream().anyMatch(pref -> {
-                    final String prefNoSlash = pref.substring(0, pref.length() - 1);
-                    // folder is exactly the excluded path, or folder is inside an excluded path
-                    return folderKeyLower.equals(prefNoSlash) || folderWithSlash.startsWith(pref);
-                });
-                 if (excluded) {
-                     return false;
-                 }
-
-                 if (viewerPrefixes.isEmpty()) {
-                     return true;
-                 }
-
-                 // Include folder when:
-                 // - folder itself matches a viewer prefix, OR
-                 // - folder is inside a viewer prefix, OR
-                 // - any viewer prefix is a descendant of the folder (so the folder should be visible to allow drilling down)
-                 return viewerPrefixes.stream().anyMatch(pref -> {
-                     final String prefNoSlash = pref.substring(0, pref.length() - 1);
-                     if (folderKeyLower.equals(prefNoSlash)) {
-                         return true;
-                     }
-                     if (folderWithSlash.startsWith(pref)) {
-                         return true;
-                     }
-                     // pref is deeper than folder (e.g., folderKey='bar' and pref='bar/foo/') -> include folder
-                     return pref.startsWith(folderWithSlash);
-                 });
-             })
+                return !isExcludeMatch(excludePrefixes, folderKeyLower, folderWithSlash)
+                        && (viewPrefixes.isEmpty() || isViewMatch(viewPrefixes, folderKeyLower, folderWithSlash));
+            })
              .map(S3ListItem::new)
              .toList();
 
         return Stream.concat(folders.stream(), objects.stream())
             .filter(s3ListItem -> StringUtils.isEmpty(query) || s3ListItem.getName().toLowerCase().contains(query.toLowerCase()))
             .collect(Collectors.toList());
+    }
+
+    private boolean isViewMatch(final Set<String> viewPrefixes, final String folderKeyLower, final String folderWithSlash) {
+        // Include folder when:
+        // - folder itself matches a viewer prefix, OR
+        // - folder is inside a viewer prefix, OR
+        // - any viewer prefix is a descendant of the folder (so the folder should be visible to allow drilling down)
+        return viewPrefixes.stream().anyMatch(pref -> {
+            final String prefNoSlash = pref.substring(0, pref.length() - 1);
+            if (folderKeyLower.equals(prefNoSlash)) {
+                return true;
+            }
+            if (folderWithSlash.startsWith(pref)) {
+                return true;
+            }
+            // pref is deeper than folder (e.g., folderKey='bar' and pref='bar/foo/') -> include folder
+            return pref.startsWith(folderWithSlash);
+        });
+    }
+
+    private boolean isExcludeMatch(final Set<String> excludePrefixes, final String folderKeyLower, final String folderWithSlash) {
+        // Exclude precedence for folders: exclude only when the folder itself is inside an exclude prefix or equals an exclude prefix
+        return excludePrefixes.stream().anyMatch(pref -> {
+            final String prefNoSlash = pref.substring(0, pref.length() - 1);
+            // folder is exactly the excluded path, or folder is inside an excluded path
+            return folderKeyLower.equals(prefNoSlash) || folderWithSlash.startsWith(pref);
+        });
     }
 
     public void createFolder(String key) {

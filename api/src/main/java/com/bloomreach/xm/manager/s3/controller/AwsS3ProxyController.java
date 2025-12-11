@@ -61,6 +61,8 @@ public class AwsS3ProxyController implements ProxyController<S3ListItem> {
     public static final String S3_UPLOAD_PERMISSION = "xm.s3manager-upload.user";
     public static final String S3_DELETE_PERMISSION = "xm.s3manager-delete.user";
     public static final String S3_CREATE_PERMISSION = "xm.s3manager-create.user";
+    public static final String S3_MANAGER_VIEW = "xm.s3manager-view.";
+    public static final String S3_MANAGER_EXCLUDE = "xm.s3manager-exclude.";
     private final AwsS3ServiceImpl awsS3Service;
     private final Session systemSession;
     private static DZConfiguration dzConfiguration;
@@ -150,31 +152,35 @@ public class AwsS3ProxyController implements ProxyController<S3ListItem> {
     @Produces({MediaType.APPLICATION_JSON})
     public List<S3ListItem> list(@Context HttpServletRequest httpServletRequest, @DefaultValue (value = "") @QueryParam(value = "path") String path, @QueryParam(value = "query") String query) {
         final Session userSession = getUserSession(httpServletRequest);
-        final Set<String> viewerRoles = new java.util.HashSet<>();
+        final Set<String> viewRoles = new java.util.HashSet<>();
         final Set<String> excludeRoles = new java.util.HashSet<>();
         if (userSession != null) {
-            try {
-                final Set<String> userRoles = ((HippoSession) userSession).getUser().getUserRoles();
-                if (userRoles != null) {
-                    for (String role : userRoles) {
-                        if (role == null) {
-                            continue;
-                        }
-                        if (role.startsWith("xm.s3manager-viewer.")) {
-                            viewerRoles.add(role);
-                        } else if (role.startsWith("xm.s3manager-exclude.")) {
-                            excludeRoles.add(role);
-                        }
-                    }
-                }
-            } catch (ItemNotFoundException e) {
-                log.error("Error while trying to access user roles.", e);
-            }
+            evaluateUserRoles((HippoSession) userSession, viewRoles, excludeRoles);
         } else {
             log.debug("No user session available, skipping role inspection.");
         }
 
-        return this.awsS3Service.getList(path, query, viewerRoles, excludeRoles);
+        return this.awsS3Service.getList(path, query, viewRoles, excludeRoles);
+    }
+
+    private static void evaluateUserRoles(final HippoSession userSession, final Set<String> viewRoles, final Set<String> excludeRoles) {
+        try {
+            final Set<String> userRoles = userSession.getUser().getUserRoles();
+            if (userRoles != null) {
+                for (String role : userRoles) {
+                    if (role == null) {
+                        continue;
+                    }
+                    if (role.startsWith(S3_MANAGER_VIEW)) {
+                        viewRoles.add(role);
+                    } else if (role.startsWith(S3_MANAGER_EXCLUDE)) {
+                        excludeRoles.add(role);
+                    }
+                }
+            }
+        } catch (ItemNotFoundException e) {
+            log.error("Error while trying to access user roles.", e);
+        }
     }
 
     @Path("/acl")

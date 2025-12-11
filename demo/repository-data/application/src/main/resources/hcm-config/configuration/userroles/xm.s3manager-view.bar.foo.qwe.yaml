@@ -1,6 +1,6 @@
 definitions:
   config:
-    /hippo:configuration/hippo:userroles/xm.s3manager-viewer.bar.foo.qwe:
+    /hippo:configuration/hippo:userroles/xm.s3manager-view.bar.foo.qwe:
       jcr:primaryType: hipposys:userrole
       hipposys:description: Required to use the S3 plugin with create operation
       hipposys:system: true
