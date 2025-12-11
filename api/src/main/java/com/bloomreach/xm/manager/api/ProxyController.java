@@ -57,7 +57,7 @@ public interface ProxyController<T extends ListItem> {
 
     @Path("/list")
     @GET
-    List<T> list(@DefaultValue(value = "") @QueryParam(value = "path") String path, @QueryParam(value = "query") String query);
+    List<T> list(@Context HttpServletRequest httpServletRequest, @DefaultValue(value = "") @QueryParam(value = "path") String path, @QueryParam(value = "query") String query);
 
     @Path("/acl")
     @GET

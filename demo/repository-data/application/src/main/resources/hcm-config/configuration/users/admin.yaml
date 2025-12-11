@@ -6,4 +6,5 @@ definitions:
         .meta:add-new-system-values: true
         type: string
         value: [xm.s3manager-delete.user, xm.s3manager-upload.user, xm.s3manager-create.user,
-          xm.default-user.system-admin, xm.repository-browser.user, xm.s3manager.user]
+          xm.default-user.system-admin, xm.repository-browser.user, xm.s3manager.user,
+          xm.s3manager-exclude.bar.qwe, xm.s3manager-view.bar.foo.qwe]
