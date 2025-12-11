@@ -160,6 +160,8 @@ The plugin provides 4 different user roles.
 |xm.s3manager-create.user| Role that grants the create folder right. |
 |xm.s3manager-upload.user| Role that grants the upload files to S3 right. |
 |xm.s3manager-delete.user| Role that grants delete rights on any folder/asset. |
+|xm.s3manager-view.*| Since version 4.0.0 <br/>Role that grants view permission on the directory defined. Where * should be a directory path (segments must be separated by dots eg. xm.s3manager-view.level1) |
+|xm.s3manager-exclude.*| Since version 4.0.0 <br/>Role that removes view permission from the directory defined. Where * should be a directory path (segments must be separated by dots eg. xm.s3manager-view.level1.level2) |
 --- 
 ### (Optional) Add CKEditor S3 Manager button
 
@@ -222,6 +224,6 @@ Image generation
 
 | CMS Version | XM S3 Manager Version | Release Notes                                                                                                                                                                                                                                                         
 |-------------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 16.x.x      | 3.1.0                 | 3.1.0 - Upgrade from v1 to v2 of the AWS S3 SDK <br/>3.0.0 - Upgrade to BrXM version 16.x                                                                                                                                                                             |
+| 16.x.x      | 4.0.0 <br/>3.1.0           | 4.0.0 - Add support for role based folder access <br/>3.1.0 - Upgrade from v1 to v2 of the AWS S3 SDK <br/>3.0.0 - Upgrade to BrXM version 16.x                                                                                                                            |
 | 15.x.x      | 2.0.1                 | 2.0.1 - Fix creation of S3 links in CK editor<br/>2.0.0 - Fix multipart upload,<br/>Add backwards compatible support for ACL enabled backets,<br/>Added basic operations audit logging (AwsS3ProxyController log level info)<br/>1.0.0 - Upgrade to BrXM version 15.x |
 | 14.x.x      | 0.5.0                 | Minor bug fixes                                                                                                                                                                                                                                                       |
