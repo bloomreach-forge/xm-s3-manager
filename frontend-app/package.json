@@ -15,13 +15,13 @@
     "dropzone": "^5.7.1",
     "extend": "latest",
     "load-script": "^1.0.0",
-    "material-table": "^1.57.2",
+    "material-table": "^1.69.3",
     "material-ui-dropzone": "^2.4.9",
     "react": "^16.13.1",
     "react-beautiful-dnd": "latest",
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.1.2",
-    "react-scripts": "3.4.1"
+    "react-scripts": "5.0.1"
   },
   "config": {
     "dist": "target/classes/angular/s3manager/"
