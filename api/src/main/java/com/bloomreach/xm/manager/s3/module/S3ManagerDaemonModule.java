@@ -54,12 +54,16 @@ public class S3ManagerDaemonModule extends AbstractReconfigurableDaemonModule {
     private static final String END_POINT = "/s3manager";
     private static final String XM_S3_ACCESS_KEY = "XM_S3_ACCESS_KEY";
     private static final String XM_S3_SECRET_KEY = "XM_S3_SECRET_KEY";
+    private static final String XM_S3_BUCKET = "XM_S3_BUCKET";
+    private static final String XM_S3_REGION = "XM_S3_REGION";
+    private static final String XM_S3_ENDPOINT_OVERRIDE = "XM_S3_ENDPOINT_OVERRIDE";
     private AwsService awsService;
     private AwsS3Service awsS3Service;
     private String accessKey;
     private String secretKey;
     private String region;
     private String bucket;
+    private String endpointOverride;
     private boolean presigned;
     private boolean aclEnabled;
     private long expTime;
@@ -83,8 +87,23 @@ public class S3ManagerDaemonModule extends AbstractReconfigurableDaemonModule {
             secretKey = moduleConfig.getProperty("secretKey").getString();
         }
 
-        bucket = moduleConfig.getProperty("bucket").getString();
-        region = moduleConfig.getProperty("region").getString();
+        bucket = StringUtils.isNotEmpty(System.getenv(XM_S3_BUCKET))
+                ? System.getenv(XM_S3_BUCKET)
+                : StringUtils.isNotEmpty(System.getProperty(XM_S3_BUCKET))
+                ? System.getProperty(XM_S3_BUCKET)
+                : moduleConfig.getProperty("bucket").getString();
+
+        region = StringUtils.isNotEmpty(System.getenv(XM_S3_REGION))
+                ? System.getenv(XM_S3_REGION)
+                : StringUtils.isNotEmpty(System.getProperty(XM_S3_REGION))
+                ? System.getProperty(XM_S3_REGION)
+                : moduleConfig.getProperty("region").getString();
+
+        endpointOverride = StringUtils.isNotEmpty(System.getenv(XM_S3_ENDPOINT_OVERRIDE))
+                ? System.getenv(XM_S3_ENDPOINT_OVERRIDE)
+                : StringUtils.isNotEmpty(System.getProperty(XM_S3_ENDPOINT_OVERRIDE))
+                ? System.getProperty(XM_S3_ENDPOINT_OVERRIDE)
+                : moduleConfig.hasProperty("endpointOverride") ? moduleConfig.getProperty("endpointOverride").getString() : null;
         presigned = moduleConfig.getProperty("presigned").getBoolean();
         aclEnabled = !moduleConfig.hasProperty("aclEnabled") || moduleConfig.getProperty("aclEnabled").getBoolean();
 
@@ -121,8 +140,8 @@ public class S3ManagerDaemonModule extends AbstractReconfigurableDaemonModule {
     @Override
     public void doInitialize(final Session session) throws RepositoryException {
         AwsCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
-        awsService = new AwsService(awsCredentials, region);
-        awsS3Service = new AwsS3ServiceImpl(awsService, bucket, region, presigned, aclEnabled, expTime);
+        awsService = new AwsService(awsCredentials, region, endpointOverride);
+        awsS3Service = new AwsS3ServiceImpl(awsService, bucket, region, presigned, aclEnabled, expTime, endpointOverride);
         AwsS3ProxyController awsS3ProxyController = new AwsS3ProxyController((AwsS3ServiceImpl) awsS3Service, session, dzConfiguration);
 
         HippoServiceRegistry.register(awsS3Service, AwsS3Service.class);
