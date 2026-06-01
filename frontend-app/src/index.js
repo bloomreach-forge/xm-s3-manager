@@ -11,7 +11,7 @@ import {ACLProvider} from "./ACLContext";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import {DZConfProvider} from "./DZConfContext";
 
-const axios = require('axios').default;
+import axios from 'axios';
 
 const theme = createMuiTheme({
   palette: {
