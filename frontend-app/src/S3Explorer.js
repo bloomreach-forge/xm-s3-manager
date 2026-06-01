@@ -22,7 +22,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Avatar from "@material-ui/core/Avatar";
 import {ACLConsumer} from "./ACLContext";
 
-const axios = require('axios').default;
+import axios from 'axios';
 
 function openInNewTab (url) {
   var win = window.open(url, '_blank', 'noopener,noreferrer');
@@ -36,18 +36,17 @@ function isEmpty (val) {
   return (val === undefined || val == null || val.length <= 0) ? true : false;
 }
 
-Array.prototype.unique = function () {
-  var a = this.concat();
-  for (var i = 0; i < a.length; ++i) {
-    for (var j = i + 1; j < a.length; ++j) {
+function unique (arr) {
+  const a = arr.concat();
+  for (let i = 0; i < a.length; ++i) {
+    for (let j = i + 1; j < a.length; ++j) {
       if (a[i] === a[j]) {
         a.splice(j--, 1);
       }
     }
   }
-
   return a;
-};
+}
 
 class S3Explorer extends React.Component {
 
@@ -120,7 +119,7 @@ class S3Explorer extends React.Component {
 
   setSelected (data) {
     this.setState((state) => {
-      const selected = state.selected.concat(data.filter(value => value.type !== 'FOLDER')).unique();
+      const selected = unique(state.selected.concat(data.filter(value => value.type !== 'FOLDER')));
       return {
         selected
       };
@@ -167,6 +166,7 @@ class S3Explorer extends React.Component {
       return response.data
     }).catch(exception => {
       console.error(exception);
+      return [];
     });
   }
 
@@ -266,12 +266,14 @@ class S3Explorer extends React.Component {
                   // prepare your data and then call resolve like this:
                   this.getItems(query)
                     .then(result => {
+                      const data = Array.isArray(result) ? result : [];
                       resolve({
-                        data: result,
+                        data: data,
                         page: 0,
-                        totalCount: isEmpty(result) ? 0 : result.length,
+                        totalCount: data.length,
                       })
                     })
+                    .catch(reject)
                 })
               }
               options={{

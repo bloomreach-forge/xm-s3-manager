@@ -10,7 +10,7 @@ import './S3UploadDialog.css';
 import DropzoneComponent from "./react-dropzone";
 import DZConfContext from "./DZConfContext";
 
-const axios = require('axios').default;
+import axios from 'axios';
 
 class S3UploadDialog extends React.Component {
   static contextType = DZConfContext;
