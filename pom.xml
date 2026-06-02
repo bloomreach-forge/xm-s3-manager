@@ -31,9 +31,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <aws.s3.sdk.version>2.32.16</aws.s3.sdk.version>
-    <tika.core.version>3.2.1</tika.core.version>
-    <jsoup.version>1.21.1</jsoup.version>
+    <aws.s3.sdk.version>2.46.0</aws.s3.sdk.version>
   </properties>
 
   <developers>
