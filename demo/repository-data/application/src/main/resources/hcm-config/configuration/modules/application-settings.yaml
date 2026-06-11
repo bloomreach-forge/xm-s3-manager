@@ -1,0 +1,5 @@
+definitions:
+  config:
+    /hippo:configuration/hippo:modules/application-settings/hippo:moduleconfig/content-security-policy:
+      img-src: [maps.googleapis.com, maps.gstatic.com, 'data:', ug-web-media.s3.us-east-2.amazonaws.com,
+        brfriday-s3explorer.s3.eu-west-1.amazonaws.com]

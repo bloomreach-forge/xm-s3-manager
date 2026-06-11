@@ -181,7 +181,13 @@ ckeditor.config.overlayed.json: {   extraPlugins: 'iframedialog,s3manager'      
 ```properties
     default.hst.contentrewriter.class = com.bloomreach.xm.manager.rewriter.S3AssetsLinkRewriter
 ```
+##### Update your content security policy
+In your project, add your AWS S3 domain to the content security policy configuration.
 
+```yaml
+/hippo:configuration/hippo:modules/application-settings/hippo:moduleconfig/content-security-policy:
+  img-src: [OOTB values...,  'your.s3.bucket.domain']
+```
 ---
 
 ### S3 Manager End User documentation
