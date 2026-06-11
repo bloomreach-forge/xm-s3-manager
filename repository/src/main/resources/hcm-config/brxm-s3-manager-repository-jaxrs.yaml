@@ -8,7 +8,8 @@ definitions:
         accessKey: your-access-key
         secretKey: your-secret-key
         region: your-region
-        bucket: your-backet-name
+        bucket: your-bucket-name
+        endpointOverride: ""
         presigned: false
         maxFileSize: 160000
         chunkSize: 5

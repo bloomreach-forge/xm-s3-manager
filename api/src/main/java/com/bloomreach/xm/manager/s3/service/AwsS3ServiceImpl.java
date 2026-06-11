@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Bloomreach (http://www.bloomreach.com)
+ * Copyright 2026 Bloomreach (http://www.bloomreach.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ public class AwsS3ServiceImpl implements AwsS3Service {
     private static final Tika TIKA = new Tika();
     private final String bucket;
     private final Region region;
+    private final String endpointOverride;
     private final S3Client amazonS3;
     private final S3Presigner presignerS3;
     private final boolean presigned;
@@ -77,9 +78,10 @@ public class AwsS3ServiceImpl implements AwsS3Service {
     private final Map<String, CreateMultipartUploadResponse> multipartUploadResultMap = new HashMap<>();
     private final MultiValueMap<String, CompletedPart> eParts = new LinkedMultiValueMap<>();
 
-    public AwsS3ServiceImpl(final AwsService awsService, final String bucket, final String region, final boolean presigned, final boolean aclEnabled, final long expTime) {
+    public AwsS3ServiceImpl(final AwsService awsService, final String bucket, final String region, final boolean presigned, final boolean aclEnabled, final long expTime, final String endpointOverride) {
         this.bucket = bucket;
         this.region = Region.of(region);
+        this.endpointOverride = endpointOverride;
         amazonS3 = awsService.getS3client();
         presignerS3 = awsService.getS3presigner();
         this.presigned = presigned;
@@ -112,7 +114,10 @@ public class AwsS3ServiceImpl implements AwsS3Service {
     }
 
     private String getUrl(final String key) {
-      return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region.id(), key);
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(endpointOverride)) {
+            return String.format("%s/%s/%s", endpointOverride, bucket, key);
+        }
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region.id(), key);
     }
 
     public List<S3ListItem> getList(final String prefix, final String query, final Set<String> viewRoles, final Set<String> excludeRoles) {
@@ -123,7 +128,6 @@ public class AwsS3ServiceImpl implements AwsS3Service {
               .build();
 
         final ListObjectsV2Response objectListing = amazonS3.listObjectsV2(listObjectsRequest);
-
         // derive hierarchical path prefixes from roles: convert dots to '/' and normalize
         final Set<String> viewPrefixes = viewRoles == null ? java.util.Collections.emptySet() : viewRoles.stream()
             .filter(java.util.Objects::nonNull)

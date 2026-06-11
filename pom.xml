@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2020-2025 Bloomreach (http://www.bloomreach.com)
+  Copyright 2026 Bloomreach (http://www.bloomreach.com)
 
   Licensed under the Apache License, Version 2.0 (the  "License");
   you may not use this file except in compliance with the License.
@@ -20,20 +20,18 @@
   <parent>
     <groupId>org.onehippo.cms7</groupId>
     <artifactId>hippo-cms7-project</artifactId>
-    <version>16.4.1</version>
+    <version>17.0.0</version>
   </parent>
 
   <groupId>com.bloomreach.xm.manager</groupId>
   <artifactId>brxm-s3-manager</artifactId>
   <name>brXM S3 Manager</name>
   <description>brXM S3 Manager</description>
-  <version>4.0.1-SNAPSHOT</version>
+  <version>5.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <properties>
-    <aws.s3.sdk.version>2.32.16</aws.s3.sdk.version>
-    <tika.core.version>3.2.1</tika.core.version>
-    <jsoup.version>1.21.1</jsoup.version>
+    <aws.s3.sdk.version>2.46.0</aws.s3.sdk.version>
   </properties>
 
   <developers>
@@ -82,7 +80,7 @@
   </distributionManagement>
 
   <issueManagement>
-    <url>https://issues.onehippo.com/browse/FORGE</url>
+    <url>https://issues.bloomreach.com/browse/FORGE</url>
   </issueManagement>
 
   <organization>

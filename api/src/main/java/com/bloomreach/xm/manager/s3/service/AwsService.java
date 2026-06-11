@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Bloomreach (http://www.bloomreach.com)
+ * Copyright 2026 Bloomreach (http://www.bloomreach.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,15 @@
  */
 package com.bloomreach.xm.manager.s3.service;
 
+import java.net.URI;
+
+import org.apache.commons.lang3.StringUtils;
+
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 public class AwsService {
@@ -26,16 +31,24 @@ public class AwsService {
     private final S3Client s3client;
     private final S3Presigner s3presigner;
 
-    public AwsService(final AwsCredentials credentials, final String region) {
-        s3client = S3Client.builder()
+    public AwsService(final AwsCredentials credentials, final String region, final String endpointOverride) {
+        final var clientBuilder = S3Client.builder()
             .region(Region.of(region))
-            .credentialsProvider(StaticCredentialsProvider.create(credentials))
-            .build();
+            .credentialsProvider(StaticCredentialsProvider.create(credentials));
 
-        s3presigner = S3Presigner.builder()
+        final var presignerBuilder = S3Presigner.builder()
             .region(Region.of(region))
-            .credentialsProvider(StaticCredentialsProvider.create(credentials))
-            .build();
+            .credentialsProvider(StaticCredentialsProvider.create(credentials));
+
+        if (StringUtils.isNotEmpty(endpointOverride)) {
+            final URI endpoint = URI.create(endpointOverride);
+            final S3Configuration pathStyle = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+            clientBuilder.endpointOverride(endpoint).serviceConfiguration(pathStyle);
+            presignerBuilder.endpointOverride(endpoint).serviceConfiguration(pathStyle);
+        }
+
+        s3client = clientBuilder.build();
+        s3presigner = presignerBuilder.build();
     }
 
     public S3Client getS3client() {
